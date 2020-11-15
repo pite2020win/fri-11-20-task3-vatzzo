@@ -1,3 +1,4 @@
+import logging
 # Matrix.
 
 
@@ -33,21 +34,92 @@
 #
 # Good luck.
 
+logging.basicConfig(level=logging.ERROR, format='%(levelname)-10s %(message)s')
+
+
 class Matrix:
-    def __init__(self, row1, row2, row3, row4):
-        self.row1 = row1
-        self.row2 = row2
-        self.row3 = row3
-        self.row4 = row4
-        self.columns = 4
-        self.rows = 4
+    def __init__(
+        self, matrix_dimension, rows=0
+    ):
+        self.matrix_dimension = matrix_dimension
 
-    def add(self, matrix_1, matrix_2):
-        for i in range(0, self.rows):
-            for j in range(0, self.columns):
-                matrix_res[i][j] = matrix_1[i][j] + matrix_2[i][j]
-                return matrix_res
+        if rows == 0:
+            self.rows = [[0]*matrix_dimension for i in range(matrix_dimension)]
+        else:
+            self.rows = []
+            for i in rows:
+                if len(i) == matrix_dimension:
+                    self.rows.append(i)
+                else:
+                    self.rows = []
+                    logging.error("Wrong row dimension! It must has {itm} items instead of {itm_has}.".format(
+                        itm=matrix_dimension, itm_has=len(i)))
+                    break
+
+    def __setitem__(
+        self, index, item
+    ):
+        if len(item) == self.matrix_dimension:
+            self.rows[index] = item
+        else:
+            logging.error("Wrong row dimension! It must has {itm} items. Matrix has not been changed.".format(
+                itm=self.matrix_dimension))
+
+    def __getitem__(
+        self, index
+    ):
+        return self.rows[index]
+
+    def __str__(self):
+        str1 = ''
+        for i in self.rows:
+            for x in i:
+                str1 = str1 + str(x) + ' '
+            str1 += '\n'
+        return str1
+
+    def __add__(
+        self, matrix
+    ):
+        matrix_res = Matrix(self.matrix_dimension)
+        for i in range(self.matrix_dimension):
+            for j in range(self.matrix_dimension):
+                matrix_res[i][j] = self.rows[i][j] + matrix[i][j]
+        return matrix_res
+
+    def __sub__(
+        self, matrix
+    ):
+        matrix_res = Matrix(self.matrix_dimension)
+        for i in range(self.matrix_dimension):
+            for j in range(self.matrix_dimension):
+                matrix_res[i][j] = self.rows[i][j] - matrix[i][j]
+        return matrix_res
+
+    def __mul__(
+        self, matrix
+    ):
+        matrix_res = Matrix(self.matrix_dimension)
+        for i in range(self.matrix_dimension):
+            for j in range(self.matrix_dimension):
+        return matrix_res
 
 
-matrix1 = ([1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4])
-print()
+m1 = Matrix(3)
+m1[0] = [1, 2, 3]
+m1[1] = [1, 2, 3]
+m1[2] = [1, 2, 3]
+print(
+    "Creation of matrix filled with zeros. Then setting particular rows ( m[row] ):\n{}".format(m1))
+
+m2 = Matrix(3, [[5, 4, 5], [4, 2, 4], [3, 1, 6]])
+print(
+    "Creation of matrix by passing rows as arguments in constructor function:\n{}".format(m2))
+
+m3 = m1 + m2
+print(
+    "Result of addition of 2 matrices:\n{}".format(m3))
+
+m3 = m1 - m2
+print(
+    "Result of subtraction of 2 matrices:\n{}".format(m3))
