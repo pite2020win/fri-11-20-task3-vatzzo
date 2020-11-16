@@ -1,38 +1,4 @@
 import logging
-# Matrix.
-
-
-# Write a class that can represent any 4𝑥4 real matrix.
-# Include two functions to calculate the sum and dot product of two matrices.
-# Next, write a program that imports this library module and use it to perform calculations.
-# You CAN'T use numpy.
-# Examples:
-#
-# matrix_1 = Matrix(4.,5.,6.,7.)
-# matrix_2 = Matrix(2.,2.,2.,1.)
-#
-# matrix_3 = matrix_2 @ matrix_1
-# matrix_4 = matrix_2 + matrix_1
-# matrix_4 = 6 + matrix_1
-# matrix_4 = matrix_1 + 6
-#
-# expand your solution to include other operations like
-# - subtraction
-# - inversion
-# - string representation
-#
-# Try to expand your implementation as best as you can.
-# Think of as many features as you can, and try implementing them.
-# Make intelligent use of pythons syntactic sugar (overloading, iterators, generators, etc)
-# Most of all: CREATE GOOD, RELIABLE, READABLE CODE.
-# The goal of this task is for you to SHOW YOUR BEST python programming skills.
-# Impress everyone with your skills, show off with your code.
-#
-# Your program must be runnable with command "python task.py".
-# Show some usecases of your library in the code (print some things)
-# Delete these comments before commit!
-#
-# Good luck.
 
 logging.basicConfig(level=logging.ERROR, format='%(levelname)-10s %(message)s')
 
@@ -55,6 +21,16 @@ class Matrix:
                     logging.error("Wrong row dimension! It must has {itm} items instead of {itm_has}.".format(
                         itm=matrix_dimension, itm_has=len(i)))
                     break
+
+    def _get_columns(self):
+        column = []
+        columns = []
+        for i in range(self.matrix_dimension):
+            for j in range(self.matrix_dimension):
+                column.append(self.rows[j][i])
+            columns.append(column)
+            column = []
+        return columns
 
     def __setitem__(
         self, index, item
@@ -82,44 +58,149 @@ class Matrix:
         self, matrix
     ):
         matrix_res = Matrix(self.matrix_dimension)
-        for i in range(self.matrix_dimension):
-            for j in range(self.matrix_dimension):
-                matrix_res[i][j] = self.rows[i][j] + matrix[i][j]
-        return matrix_res
+        if type(matrix) == Matrix:
+            for i in range(self.matrix_dimension):
+                for j in range(self.matrix_dimension):
+                    matrix_res[i][j] = self.rows[i][j] + matrix[i][j]
+            return matrix_res
+        elif type(matrix) in [int, float]:
+            matrix_new = Matrix(self.matrix_dimension)
+            matrix_new.fill_with(matrix)
+            for i in range(self.matrix_dimension):
+                for j in range(self.matrix_dimension):
+                    matrix_res[i][j] = self.rows[i][j] + matrix_new[i][j]
+            return matrix_res
+        else:
+            logging.error(
+                "Wrong element of addition. It must be a number. Matrix has not been changed.")
 
     def __sub__(
         self, matrix
     ):
         matrix_res = Matrix(self.matrix_dimension)
-        for i in range(self.matrix_dimension):
-            for j in range(self.matrix_dimension):
-                matrix_res[i][j] = self.rows[i][j] - matrix[i][j]
-        return matrix_res
+        if type(matrix) == Matrix:
+            for i in range(self.matrix_dimension):
+                for j in range(self.matrix_dimension):
+                    matrix_res[i][j] = self.rows[i][j] - matrix[i][j]
+            return matrix_res
+        elif type(matrix) in [int, float]:
+            matrix_new = Matrix(self.matrix_dimension)
+            matrix_new.fill_with(matrix)
+            for i in range(self.matrix_dimension):
+                for j in range(self.matrix_dimension):
+                    matrix_res[i][j] = self.rows[i][j] - matrix_new[i][j]
+            return matrix_res
+        else:
+            logging.error(
+                "Wrong element of addition. It must be a number. Matrix has not been changed.")
 
     def __mul__(
-        self, matrix
+        self, number
     ):
         matrix_res = Matrix(self.matrix_dimension)
         for i in range(self.matrix_dimension):
             for j in range(self.matrix_dimension):
+                matrix_res[i][j] = self.rows[i][j] * number
         return matrix_res
 
+    def __rmul__(
+        self, number
+    ):
+        return self * number
 
-m1 = Matrix(3)
-m1[0] = [1, 2, 3]
-m1[1] = [1, 2, 3]
-m1[2] = [1, 2, 3]
-print(
-    "Creation of matrix filled with zeros. Then setting particular rows ( m[row] ):\n{}".format(m1))
+    def __truediv__(
+        self, number
+    ):
+        matrix_res = Matrix(self.matrix_dimension)
+        for i in range(self.matrix_dimension):
+            for j in range(self.matrix_dimension):
+                matrix_res[i][j] = self.rows[i][j] / number
+        return matrix_res
 
-m2 = Matrix(3, [[5, 4, 5], [4, 2, 4], [3, 1, 6]])
-print(
-    "Creation of matrix by passing rows as arguments in constructor function:\n{}".format(m2))
+    def __matmul__(
+        self, matrix
+    ):
+        matrix_res = Matrix(self.matrix_dimension)
+        columns = matrix._get_columns()
+        for i in range(self.matrix_dimension):
+            for j in range(self.matrix_dimension):
+                matrix_res[i][j] = sum([item[0]*item[1]
+                                        for item in zip(self.rows[i], columns[j])])
+        return matrix_res
 
-m3 = m1 + m2
-print(
-    "Result of addition of 2 matrices:\n{}".format(m3))
+    def __radd__(
+        self, matrix
+    ):
+        return self + matrix
 
-m3 = m1 - m2
-print(
-    "Result of subtraction of 2 matrices:\n{}".format(m3))
+    def __rsub__(
+        self, matrix
+    ):
+        if type(matrix) in [int, float]:
+            matrix_new = Matrix(self.matrix_dimension)
+            matrix_new.fill_with(matrix)
+            return matrix_new - self
+        else:
+            logging.error(
+                "Wrong element of addition. It must be a number. Matrix has not been changed.")
+
+    def fill_with(
+        self, number
+    ):
+        for i in range(self.matrix_dimension):
+            for j in range(self.matrix_dimension):
+                self.rows[i][j] = number
+
+
+if __name__ == "__main__":
+    m1 = Matrix(3)
+    m1[0] = [1, 2, 3]
+    m1[1] = [1, 2, 3]
+    m1[2] = [1, 2, 3]
+    print(
+        "Creation of matrix filled with zeros. Then setting particular rows ( m[row] ):\n{}".format(m1))
+
+    m2 = Matrix(3, [[5, 2, 5], [5, 2, 5], [5, 2, 5]])
+    print(
+        "Creation of matrix by passing rows as arguments in constructor function:\n{}".format(m2))
+
+    m3 = m1 + m2
+    print(
+        "Result of addition of 2 matrices:\n{}".format(m3))
+
+    m3 = m1 - m2
+    print(
+        "Result of subtraction of 2 matrices:\n{}".format(m3))
+
+    m3 = m1 * 2
+    print(
+        "Result of multiplication of matrix by 2:\n{}".format(m3))
+
+    m3 = m1 / 2
+    print(
+        "Result of division of matrix by 2:\n{}".format(m3))
+
+    m3 = m1 @ m2
+    print(
+        "Result of multiplication of 2 matrices:\n{}".format(m3))
+
+    print("Iterator: ")
+    for i in m3:
+        print(i)
+    print("\n")
+
+    m3 = m1 + 2
+    print(
+        "Result of addition (m1 + 2):\n{}".format(m3))
+
+    m3 = 2 + m1
+    print(
+        "Result of addition (2 + m1):\n{}".format(m3))
+
+    m3 = m1 - 2
+    print(
+        "Result of subtraction (m1 - 2):\n{}".format(m3))
+
+    m3 = 2 - m1
+    print(
+        "Result of subtraction (2 - m1):\n{}".format(m3))
